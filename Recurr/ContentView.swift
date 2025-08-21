@@ -6,16 +6,33 @@
 //
 
 import SwiftUI
+import FirebaseAuth
 
 struct ContentView: View {
+    @State private var isUserLoggedIn = false
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        Group {
+            if isUserLoggedIn {
+                MainView()
+            } else {
+                LoginView()
+            }
         }
-        .padding()
+        .onAppear {
+            checkAuthState()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("AuthStateChanged"))) { _ in
+            checkAuthState()
+        }
+    }
+    
+    private func checkAuthState() {
+        Auth.auth().addStateDidChangeListener { auth, user in
+            DispatchQueue.main.async {
+                self.isUserLoggedIn = user != nil
+            }
+        }
     }
 }
 
